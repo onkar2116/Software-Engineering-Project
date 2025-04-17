@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detection</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            resize: none;
+        }
+
+        textarea::placeholder {
+            color: #666;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #2575fc;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .file-upload:hover {
+            background: #1b5fd9;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background: #6a11cb;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #4d0c9a;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .result span {
+            display: block;
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #ddd;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            textarea {
+                height: 120px;
+            }
+
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fake News Detection</h1>
+        
+        <!-- Text Input Section -->
+        <textarea id="text" placeholder="Enter news text here..."></textarea>
+        <br>
+        <button onclick="predictText()">Check Text</button>
+
+        <!-- Image Input Section -->
+        <label for="image" class="file-upload">Upload Image</label>
+        <input type="file" id="image" accept="image/*">
+        <br>
+        <button onclick="predictImage()">Check Image</button>
+
+        <!-- Result Display -->
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        async function predictText() {
+            const text = document.getElementById('text').value;
+
+            // Send a POST request to the Flask backend
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `text=${encodeURIComponent(text)}`,
+            });
+
+            const data = await response.json();
+            document.getElementById('result').innerHTML = `Result: <span>${data.result}</span>`;
+        }
+
+        async function predictImage() {
+            const imageFile = document.getElementById('image').files[0];
+
+            // Create a FormData object to send the image
+            const formData = new FormData();
+            formData.append('image', imageFile);
+
+            // Send a POST request to the Flask backend
+            const response = await fetch('/predict_image', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                document.getElementById('result').innerHTML = `Error: <span>${data.error}</span>`;
+            } else {
+                document.getElementById('result').innerHTML = `Result: <span>${data.result}</span><br>Extracted Text: <span>${data.extracted_text}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detection</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .options {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background: #6a11cb;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #4d0c9a;
+        }
+
+        .input-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            resize: vertical;
+            max-height: 300px;
+            min-height: 100px;
+            overflow-y: auto;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fake News Detection</h1>
+        
+        <!-- Selection Buttons -->
+        <div class="options">
+            <button onclick="showInput('text')">Enter Text</button>
+            <button onclick="showInput('image')">Upload Image</button>
+        </div>
+        
+        <!-- Text Input Section -->
+        <div id="text-input" class="input-section">
+            <textarea id="text" placeholder="Enter news text here..."></textarea>
+            <br>
+            <button onclick="predictText()">Check Text</button>
+        </div>
+        
+        <!-- Image Input Section -->
+        <div id="image-input" class="input-section">
+            <input type="file" id="image" accept="image/*">
+            <br>
+            <button onclick="predictImage()">Check Image</button>
+        </div>
+        
+        <!-- Result Display -->
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function showInput(type) {
+            document.getElementById('text-input').style.display = 'none';
+            document.getElementById('image-input').style.display = 'none';
+            
+            if (type === 'text') {
+                document.getElementById('text-input').style.display = 'block';
+            } else if (type === 'image') {
+                document.getElementById('image-input').style.display = 'block';
+            }
+        }
+
+        async function predictText() {
+            const text = document.getElementById('text').value;
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `text=${encodeURIComponent(text)}`,
+            });
+            const data = await response.json();
+            document.getElementById('result').innerHTML = `Result: <span>${data.result}</span>`;
+        }
+
+        async function predictImage() {
+            const imageFile = document.getElementById('image').files[0];
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            const response = await fetch('/predict_image', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            document.getElementById('result').innerHTML = data.error ? `Error: <span>${data.error}</span>` : `Result: <span>${data.result}</span><br>Extracted Text: <span>${data.extracted_text}</span>`;
+        }
+    </script>
+</body>
+</html>
